@@ -4,7 +4,7 @@ certifi==2025.8.3
 charset-normalizer==3.4.2
 click==8.1.8
 ConfigArgParse==1.7.1
-Flask==3.1.1
+Flask==3.1.2
 flask-cors==6.0.1
 Flask-Login==0.6.3
 gevent==25.5.1
