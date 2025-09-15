@@ -22,7 +22,7 @@ pandas==2.3.1
 psutil==7.0.0
 python-dateutil==2.9.0.post0
 pytz==2025.2
-pyzmq==27.0.1
+pyzmq==27.1.0
 requests==2.32.4
 six==1.17.0
 tomli==2.2.1
