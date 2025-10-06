@@ -18,7 +18,7 @@ locust==2.34.0
 MarkupSafe==3.0.2
 msgpack==1.1.1
 numpy==2.0.2
-pandas==2.3.1
+pandas==2.3.3
 psutil==7.0.0
 python-dateutil==2.9.0.post0
 pytz==2025.2
