@@ -1,4 +1,4 @@
-from locust import task, between
+from locust import SequentialTaskSet, task, between
 from locust.contrib.fasthttp import FastHttpUser
 from locust.exception import StopUser
 from locust import LoadTestShape
@@ -10,14 +10,68 @@ try:
 except ImportError:
     pass  # in Docker, dotenv may not be installed
 
+class SancusFlow(SequentialTaskSet):
+    """
+    Executes sequential requests:
+    1. Fetch user pocket → extract level
+    2. Fetch deals list using extracted level
+    3. Fetch Benefits list using extracted level
+    """
+
+    user_level = None
+
+    @task
+    def getPocketById(self):
+        with self.client.get(
+            "v1/pocket", params=self.user.params, headers=self.user.headers, catch_response=True
+        ) as response:
+            if response.status_code == 200:
+                response.success()
+                try:
+                    data = response.json()
+                    self.user_level = data.get("level")
+                except Exception as e:
+                    response.failure(f"JSON parse failed: {e}")
+            else:
+                response.failure(f"Failed to fetch pocket=> status:{response.status_code} | body: {response.text}")
+
+    @task
+    def getDealsList(self):
+        if not self.user_level:
+            print("[WARN] user_level not found, skipping deals request")
+            return
+
+        with self.client.get(
+            "v2/marketplace/deals",
+            params={"level": self.user_level},
+            headers=self.user.headers,
+            catch_response=True
+        ) as response:
+            if response.status_code == 200:
+                response.success()
+            else:
+                response.failure(f"Failed to fetch deals=> status: {response.status_code} | body: {response.text}")
+
+    @task
+    def getBenefitsList(self):
+        if not self.user_level:
+            print("[WARN] user_level not found, skipping benefits request")
+            return
+
+        with self.client.get(
+            "v1/marketplace/benefits",
+            params={"level": self.user_level},
+            headers=self.user.headers,
+            catch_response=True
+        ) as response:
+            if response.status_code == 200:
+                response.success()
+            else:
+                response.failure(f"Failed to fetch deals=> status: {response.status_code} | body: {response.text}")
+
 
 class Sancus(FastHttpUser):
-    """
-    Locust User class that makes API calls against Sancus.
-    Uses FastHttpUser for high-performance HTTP requests.
-    """
     host = os.environ.get("API_HOST")
-    # wait_time = between(1, 2)  # Wait between requests
     wait_time = between(0, 0)
     headers = {
         "Content-Type": "application/json",
@@ -28,31 +82,9 @@ class Sancus(FastHttpUser):
         "country_id": os.environ.get("COUNTRY_ID"),
         "user_type": os.environ.get("USER_TYPE")
     }
-
     params = {"lang": os.environ.get("LANG"), "include_offer_summary": "true"}
 
-
-    # def on_start(self):
-    #     """Executed once per simulated user when the load test starts"""
-    #     self.request_count = 0
-
-    @task
-    def getPocketById(self):
-        """Fetches a sancus pocket user"""
-
-        with self.client.get(
-            "/pocket", params=self.params, headers=self.headers, catch_response=True
-        ) as response:
-            if response.status_code == 200:
-                response.success()
-                # print(f"[SUCCESS] Status Code: {response.status_code} --- Get User Pocket success")
-            else:
-                response.failure(f"[FAILED] Status Code: {response.status_code} | Response Body:{response.text}")
-
-        # Stop after 2 requests per user
-        # self.request_count += 1
-        # if self.request_count >= 2:
-        #     raise StopUser()
+    tasks = [SancusFlow]  # <- attach the sequential flow
 
 
 class SpikeLoadShape(LoadTestShape):
