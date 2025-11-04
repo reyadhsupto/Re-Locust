@@ -1,0 +1,82 @@
+services:
+  master:
+    image: locustio/locust
+    container_name: locust-master
+    ports:
+      - "8089:8089"           
+    env_file:
+      - .env
+    volumes:
+      - .:/mnt/locust
+    command: >
+      -f /mnt/locust/locustfile.py
+      --master
+      --expect-workers 4
+      --web-host 0.0.0.0
+      --loglevel INFO
+
+  worker:
+    image: locustio/locust
+    depends_on:
+      - master
+    volumes:
+      - .:/mnt/locust
+    env_file:
+      - .env
+    command: >
+      -f /mnt/locust/locustfile.py
+      --worker
+      --master-host master
+      --loglevel INFO
+
+  # worker2:
+  #   image: locustio/locust
+  #   container_name: locust-slave-worker2
+  #   depends_on:
+  #     - master
+  #   volumes:
+  #     - .:/mnt/locust
+  #   command: >
+  #     -f /mnt/locust/locustfile.py
+  #     --worker
+  #     --master-host master
+  #     --loglevel INFO
+
+  # worker3:
+  #   image: locustio/locust
+  #   container_name: locust-slave-worker3
+  #   depends_on:
+  #     - master
+  #   volumes:
+  #     - .:/mnt/locust
+  #   command: >
+  #     -f /mnt/locust/locustfile.py
+  #     --worker
+  #     --master-host master
+  #     --loglevel INFO
+
+  # worker4:
+  #   image: locustio/locust
+  #   container_name: locust-slave-worker4
+  #   depends_on:
+  #     - master
+  #   volumes:
+  #     - .:/mnt/locust
+  #   command: >
+  #     -f /mnt/locust/locustfile.py
+  #     --worker
+  #     --master-host master
+  #     --loglevel INFO
+
+  # worker5:
+  #   image: locustio/locust
+  #   container_name: locust-slave-worker5
+  #   depends_on:
+  #     - master
+  #   volumes:
+  #     - .:/mnt/locust
+  #   command: >
+  #     -f /mnt/locust/locustfile.py
+  #     --worker
+  #     --master-host master
+  #     --loglevel INFO

@@ -1,6 +1,11 @@
-# Locust Spike Load Testing - PetStore API
+# Locust Performance Testing
 
-This project demonstrates **spike load testing** of the [PetStore Swagger API](https://petstore.swagger.io/) using **Locust**. It simulates realistic traffic patterns with multiple stages including sudden spikes and drops in users.
+This project demonstrates **spike load testing** using **Locust**. It simulates realistic traffic patterns with multiple stages including sudden spikes and drops in users.
+
+- Running Locust locally (without Docker)
+- Running Locust in **Distributed mode** (Master + Workers)
+- Scaling up workers to generate **thousands of RPS**
+- Using `.env` file to pass environment variables (API URL, headers, etc.)
 
 ---
 
@@ -10,6 +15,9 @@ locust-load-test/
 │
 ├── locustfile.py            # Main Locust entry point
 ├── requirements.txt         # Dependencies
+├── .env
+├── docker-compose.yml
+├── locust.conf   
 ├── utils/
 │   └── user_payload.py      # Responsible for generating request payloads
 └── README.md
@@ -99,22 +107,86 @@ source .venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
-### 4. Run Locust
+### 4. Environment Variables
+create a **.env** file (as per directory structure)
+
+```bash
+Edit `.env` (example):
+
+API_BASE_URL=https://your-api.com/v1/orders
+AUTH_TOKEN=Bearer abcde12345
+USERS=2000
+SPAWN_RATE=200
+RUN_TIME=5m
+```
+
+Inside Python (`locustfile.py`), access like:
+
+```python
+import os
+
+BASE_URL = os.getenv("API_BASE_URL")
+AUTH_HEADER = os.getenv("AUTH_TOKEN")
+```
+
+### 5. Run Locust (local)
 ```bash
 locust
 ```
 Open your browser and navigate to:
 ```bash
 http://localhost:8089
+or
+http://0.0.0.0:8089/
 ```
-From the Locust Web UI, you can start the test and monitor metrics such as response time, failures, and request per second.
+> From the Locust Web UI, you can start the test and monitor metrics such as response time, failures, and request per second.
 
+### 6. Run Locust WITH Docker
+
+1. Build images
+```bash
+docker compose build
+```
+
+2. Run Master + Workers (detached mode)
+```bash
+docker compose up -d
+```
+#### This:
+
+- Runs Locust Master at port **8089**
+
+- Starts multiple workers automatically
+
+#### Open UI:
+
+=> http://localhost:8089
+
+Enter users & spawn rate (or leave blank if env is configured).
+
+3. Scaling Workers to Increase RPS
+To increase RPS (ex: 6 workers):
+```bash
+docker compose up --scale worker=6 -d
+```
+4. Check running containers:
+```bash
+docker ps
+```
+5. Worker & Master Logs:
+```bash
+docker compose logs -f
+```
+6. Stop / Cleanup:
+```bash
+docker compose down
+```
 ---
 
 ## Customization
-- Change host URL: Update host in PetstoreUser class in locustfile.py
+- Change host URL: Update host in .env
 
-- Add more endpoints: Create new tasks under PetstoreUser class
+- Add more endpoints: Create new tasks under sancus class
 
 - Randomize users: Modify utils/user_payload.py to generate dynamic payloads
 
@@ -161,3 +233,10 @@ Locust Web UI provides real-time metrics:
 - [LoadTestShape for Custom Load Patterns](https://docs.locust.io/en/stable/writing-a-locustfile.html#custom-load-shapes) – Guide for creating custom user load patterns.
 - [Virtual Environments in Python](https://docs.python.org/3/library/venv.html) – How to create isolated Python environments for dependencies.
 - [Geven Library](https://www.gevent.org/) – Underlying library used by Locust for asynchronous HTTP requests.
+
+---
+## Contributions
+
+Feel free to PR improvements.
+
+## If this helped you — star the repo!
