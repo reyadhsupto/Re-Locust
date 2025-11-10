@@ -18,7 +18,7 @@ iniconfig==2.3.0
 itsdangerous==2.2.0
 Jinja2==3.1.6
 locust==2.42.1
-locust-cloud==1.27.12
+locust-cloud==1.28.1
 MarkupSafe==3.0.3
 msgpack==1.1.2
 packaging==25.0
