@@ -6,6 +6,8 @@ services:
       - "8089:8089"           
     env_file:
       - .env
+    environment:
+      - LOCUST_USER=${LOCUST_USER:-WebSocketUser}
     volumes:
       - .:/mnt/locust
     command: >
@@ -14,6 +16,7 @@ services:
       --expect-workers 4
       --web-host 0.0.0.0
       --loglevel INFO
+      ${LOCUST_USER:-WebSocketUser}
 
   worker:
     image: locustio/locust
@@ -23,6 +26,8 @@ services:
       - .:/mnt/locust
     env_file:
       - .env
+    environment:
+      - LOCUST_USER=${LOCUST_USER:-WebSocketUser}
     command: >
       -f /mnt/locust/locustfile.py
       --worker
